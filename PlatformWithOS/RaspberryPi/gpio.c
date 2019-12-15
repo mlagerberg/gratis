@@ -398,6 +398,27 @@ void GPIO_pwm_write(int pin, uint32_t value) {
 
 bool get_cpu_io_base_address(uint32_t *base) {
 
+	char buffer[8];
+	const char *ranges_file = "/proc/device-tree/soc/ranges";
+	int info_fd = open(ranges_file, O_RDONLY);
+
+	if (info_fd < 0) {
+		warn("cannot open: %s", ranges_file);
+		return false;
+	}
+
+	ssize_t n = read(info_fd, buffer, sizeof(buffer) );
+	close(info_fd);
+	if (n != 8) {
+		warn("cannot read base address: %s", ranges_file);
+		return false;
+	}
+
+	*base =  (buffer[4] << 24) + (buffer[5] << 16) + (buffer[6] << 8) + (buffer[7] << 0);
+	return true;
+}
+
+/*
 	int info_fd = open(cpu_info_file, O_RDONLY);
 
 	if (info_fd < 0) {
@@ -442,6 +463,7 @@ bool get_cpu_io_base_address(uint32_t *base) {
 	// failed
 	return false;
 }
+*/
 
 // setup a map to a peripheral offset
 // false => error
